@@ -1,3 +1,5 @@
-import Game from './Game';
+import * as React from 'react';
+import { render } from 'react-dom';
+import Main from './Main';
 
-new Game();
+render(<Main />, document.querySelector('.root'));
