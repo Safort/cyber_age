@@ -1,0 +1,5 @@
+/target
+**/*.rs.bk
+
+/src/client/node_modules
+/src/client/.vscode
