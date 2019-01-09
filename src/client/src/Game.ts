@@ -30,13 +30,12 @@ export default class Game {
 		
 		const geometry = new THREE.BoxGeometry(2, 0.1, 2);
 		const material = new THREE.MeshNormalMaterial();
-
 		const place = new THREE.Mesh(geometry, material);
-		place.position.y = -0.5;
-		place.position.z = 0;
-		
-		this.scene.add(place);
 
+		place.position.y = 0;
+		this.player.obj.position.y = place.position.y + 0.5;
+
+		this.scene.add(place);
 		this.scene.add(this.player.obj);
 
 		this.renderer = new THREE.WebGLRenderer({ antialias: true });
