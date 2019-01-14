@@ -1,24 +1,37 @@
-extern crate actix;
+#[macro_use]
+extern crate serde_derive;
 
-use actix_web::{server, App, fs, middleware};
+use actix::{Arbiter};
+use actix_web::{
+    server::HttpServer,
+    App,
+    fs,
+    middleware,
+};
 
-#[cfg(debug_assertions)]
-fn get_public_path() -> &'static str {
-    "./target/public/"
-}
+mod utils;
+mod types;
+mod storage;
+mod ws_router;
+mod ws_routes;
 
-#[cfg(not(debug_assertions))]
-fn get_public_path() -> &'static str {
-    "../public/"
-}
-
+use self::types::state;
+use self::utils::{get_public_path, get_game_config};
 
 fn main() {
-    server::new(|| {
-        let public_path = get_public_path();
+    let sys = actix::System::new("websocket-example");
+    let arbiter = Arbiter::start(|_| ws_routes::Server::default());
+    let public_path = get_public_path();
 
-        App::new()
+    HttpServer::new(move || {
+        let app_state = state::AppState {
+            config: get_game_config(),
+            addr: arbiter.clone(),
+        };
+
+        App::with_state(app_state)
             .middleware(middleware::Logger::default())
+            .resource("/ws", |r| r.route().f(ws_router::handle))
             .handler(
                 "/",
                 fs::StaticFiles::new(public_path).unwrap().index_file("index.html")
@@ -26,5 +39,8 @@ fn main() {
     })
     .bind("127.0.0.1:8080")
     .unwrap()
-    .run();
+    .start();
+
+    println!("Started http server: http://127.0.0.1:8080");
+    let _ = sys.run();
 }
